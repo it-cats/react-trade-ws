@@ -81,6 +81,7 @@ function StatisticsComp({wssData, onClick, disabled, statusDate}) {
 
     // Обновление значения затраченного времени на выполнение
     setTimeToPerfomance(time);
+
   };
 
 
@@ -95,7 +96,7 @@ function StatisticsComp({wssData, onClick, disabled, statusDate}) {
       />
       <ButtonComp 
         name={statusDate ? 'Статистика' : 'Загружаю данные...'}
-        click={showStatistics}
+        click={showStatistics2}
         disabled={disabled}
       />
 
