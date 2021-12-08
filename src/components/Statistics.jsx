@@ -1,7 +1,7 @@
 /* eslint-disable */ 
 import React, { useState } from 'react';
 
-function StatisticsComp() {
+function StatisticsComp({wssData}) {
   const [arr, setArr] = useState([]);
   const [dispersion, setDispersion] = useState(0);
   const [standDevitation, setStandDevitation] = useState(0);
@@ -10,13 +10,14 @@ function StatisticsComp() {
   const [median, setMedian] = useState(0);
   const [mode, setMode] = useState(0);
   const [statusDate, setStatusDate] = useState(true);
+  
 
   // Расчет среднего(дисперсия) и стандартного отклонения
   function calcDispAndStandDevit() {
-    const arrSum = arr.reduce((a, b) => a + b, 0);
-    const arrMain = arrSum / arr.length;
-    const dispersionSum = (arr.map((item) => (item - arrMain) ** 2).reduce((a, b) => a + b, 0));
-    const dispersionValue = (dispersionSum / arr.length).toFixed();
+    const arrSum = wssData.reduce((a, b) => a + b, 0);
+    const arrMain = arrSum / wssData.length;
+    const dispersionSum = (wssData.map((item) => (item - arrMain) ** 2).reduce((a, b) => a + b, 0));
+    const dispersionValue = (dispersionSum / wssData.length).toFixed();
     const standartDevitationVal = Math.sqrt(dispersionValue).toFixed(1);
     // Обновление среднего(дисперсия) и стандартного отклонения
     setDispersion(dispersionValue);
@@ -28,14 +29,14 @@ function StatisticsComp() {
     let even;
     let odd;
 
-    if (arr.length === 0) return 0;
-    arr.sort((a, b) => a - b);
-    const half = Math.floor(arr.length / 2);
-    if (arr.length % 2) {
-      even = arr[half];
+    if (wssData.length === 0) return 0;
+    wssData.sort((a, b) => a - b);
+    const half = Math.floor(wssData.length / 2);
+    if (wssData.length % 2) {
+      even = wssData[half];
       setMedian(even);
     } else {
-      odd = (arr[half - 1] + arr[half]) / 2.0;
+      odd = (wssData[half - 1] + wssData[half]) / 2.0;
       setMedian(odd);
     }
   }
@@ -48,7 +49,7 @@ function StatisticsComp() {
     let mode;
 
     // eslint-disable-next-line no-restricted-syntax
-    for (const item of arr) {
+    for (const item of wssData) {
       let freq = map.has(item) ? map.get(item) : 0;
       // eslint-disable-next-line no-plusplus
       freq++;
@@ -87,44 +88,44 @@ function StatisticsComp() {
   };
 
   // Загрузка веб сокета
-  const LoadWSS = () => {
-    console.log(arr.length, 'arr.lengtht');
-    setStatusDate(false);
-    const socket = new WebSocket('wss://trade.trademux.net:8800/?password=1234');
+  // const LoadWSS = () => {
+  //   console.log(arr.length, 'arr.lengtht');
+  //   setStatusDate(false);
+  //   const socket = new WebSocket('wss://trade.trademux.net:8800/?password=1234');
 
-    // Открытие соединения
-    socket.onopen = function () {
-      console.log('[open] Соединение установлено');
-      console.log('Отправляем данные на сервер');
-      socket.send('Меня зовут Джон');
-    };
+  //   // Открытие соединения
+  //   socket.onopen = function () {
+  //     console.log('[open] Соединение установлено');
+  //     console.log('Отправляем данные на сервер');
+  //     socket.send('Меня зовут Джон');
+  //   };
 
-    // Получения сообщений с сервера
-    socket.onmessage = function (event) {
-      const response = JSON.parse(event.data);
-      // eslint-disable-next-line no-shadow
-      setArr((arr) => [...arr, Number(response.value)]);
-      setDisabled(false);
-      setStatusDate(true);
-      console.log(response.value, 'value');
-    };
+  //   // Получения сообщений с сервера
+  //   socket.onmessage = function (event) {
+  //     const response = JSON.parse(event.data);
+  //     // eslint-disable-next-line no-shadow
+  //     setArr((arr) => [...arr, Number(response.value)]);
+  //     setDisabled(false);
+  //     setStatusDate(true);
+  //     console.log(response.value, 'value');
+  //   };
 
-    // Закрытие соединения
-    socket.onclose = function (event) {
-      if (event.wasClean) {
-        alert(`[close] Соединение закрыто чисто, код=${event.code} причина=${event.reason}`);
-      } else {
-        // Например, сервер убил процесс или сеть недоступна
-        // обычно в этом случае event.code 1006
-        alert('[close] Соединение прервано');
-      }
-    };
+  //   // Закрытие соединения
+  //   socket.onclose = function (event) {
+  //     if (event.wasClean) {
+  //       alert(`[close] Соединение закрыто чисто, код=${event.code} причина=${event.reason}`);
+  //     } else {
+  //       // Например, сервер убил процесс или сеть недоступна
+  //       // обычно в этом случае event.code 1006
+  //       alert('[close] Соединение прервано');
+  //     }
+  //   };
 
-    // Возникновение ошибки
-    socket.onerror = function (error) {
-      alert(`[error] ${error.message}`);
-    };
-  };
+  //   // Возникновение ошибки
+  //   socket.onerror = function (error) {
+  //     alert(`[error] ${error.message}`);
+  //   };
+  // };
 
   // render
   return (
