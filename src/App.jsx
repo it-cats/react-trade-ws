@@ -6,10 +6,16 @@ import { useState } from 'react';
 
 function App() {
   const [data, setData] = useState([])
+  // const [dispersion, setDispersion] = useState(0);
+  // const [standDevitation, setStandDevitation] = useState(0);
+  const [disabled, setDisabled] = useState(true);
+  // const [timeToPerfomance, setTimeToPerfomance] = useState(0);
+  // const [median, setMedian] = useState(0);
+  // const [mode, setMode] = useState(0);
+  const [statusDate, setStatusDate] = useState(true);
     // Загрузка веб сокета
     const LoadWSS = () => {
-      // console.log(arr.length, 'arr.lengtht');
-      // setStatusDate(false);
+      setStatusDate(false);
       const socket = new WebSocket('wss://trade.trademux.net:8800/?password=1234');
   
       // Открытие соединения
@@ -24,10 +30,9 @@ function App() {
         const response = JSON.parse(event.data);
         // eslint-disable-next-line no-shadow
         // setArr((arr) => [...arr, Number(response.value)]);
-        // setDisabled(false);
-        // setStatusDate(true);
+        setDisabled(false);
+        setStatusDate(true);
         setData((data) => [...data, Number(response.value)]);
-
       };
   
       // Закрытие соединения
@@ -53,8 +58,14 @@ function App() {
     <>
       <button 
         onClick={LoadWSS}
-      >WSS</button>
-      <Statistics wssData={data} />
+      >
+        WSS
+      </button>
+      <Statistics 
+        wssData={data} 
+        onClick={LoadWSS}
+        disabled={disabled}
+        statusDate={statusDate} />
       {/* <Ping /> */}
     </>
   );
