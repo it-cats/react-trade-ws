@@ -1,74 +1,107 @@
 import React from 'react';
+import Statistic from './components/Statistics';
 import './App.css';
-import Statistics from './components/Statistics';
-// import Ping from './components/Ping';
-import { useState } from 'react';
 
-function App() {
-  const [data, setData] = useState([])
-  // const [dispersion, setDispersion] = useState(0);
-  // const [standDevitation, setStandDevitation] = useState(0);
-  const [disabled, setDisabled] = useState(true);
-  // const [timeToPerfomance, setTimeToPerfomance] = useState(0);
-  // const [median, setMedian] = useState(0);
-  // const [mode, setMode] = useState(0);
-  const [statusDate, setStatusDate] = useState(true);
-    // Загрузка веб сокета
-    const LoadWSS = () => {
-      setStatusDate(false);
-      const socket = new WebSocket('wss://trade.trademux.net:8800/?password=1234');
-  
-      // Открытие соединения
-      socket.onopen = function () {
-        console.log('[open] Соединение установлено');
-        console.log('Отправляем данные на сервер');
-        socket.send('Меня зовут Джон');
-      };
-  
-      // Получения сообщений с сервера
-      socket.onmessage = function (event) {
-        const response = JSON.parse(event.data);
-        // eslint-disable-next-line no-shadow
-        // setArr((arr) => [...arr, Number(response.value)]);
-        setDisabled(false);
-        setStatusDate(true);
-        setData((data) => [...data, Number(response.value)]);
-      };
-  
-      // Закрытие соединения
-      socket.onclose = function (event) {
-        if (event.wasClean) {
-          alert(`[close] Соединение закрыто чисто, код=${event.code} причина=${event.reason}`);
-        } else {
-          // Например, сервер убил процесс или сеть недоступна
-          // обычно в этом случае event.code 1006
-          alert('[close] Соединение прервано');
-        }
-      };
-  
-      // Возникновение ошибки
-      socket.onerror = function (error) {
-        alert(`[error] ${error.message}`);
-      };
-    };
+class App extends React.Component {
+  constructor(props) {
+    super(props);
 
-    
-  // Render
-  return (
-    <>
-      <button 
-        onClick={LoadWSS}
-      >
-        WSS
-      </button>
-      <Statistics 
-        wssData={data} 
-        onClick={LoadWSS}
-        disabled={disabled}
-        statusDate={statusDate} />
-      {/* <Ping /> */}
-    </>
-  );
+    this.socket = null;
+
+    this.toggleSocket = this.toggleSocket.bind(this);
+    this.statisticHandler = this.statisticHandler.bind(this);
+    this.socketListener = this.socketListener.bind(this);
+
+    // Around max available blob size for chrome
+    const availableMemory = 2000000000;
+    // Maximum array size
+    // About 35-70h with speed ~500-1000 i/s
+    this.limit = Math.round(availableMemory / 16);
+    // Buffer for Int16Array
+    this.buffer = new ArrayBuffer(this.limit * 16);
+    // Array for all data from socket. Init in this.reset()
+    this.array = null;
+    // Current array position
+    this.length = 0;
+    // Lost counter
+    this.lost = 0;
+
+    this.state = {
+      isSocketOn: false,
+      isStatisticShow: false,
+      data: [],
+      length: 0,
+      lost: 0
+    }
+  }
+
+  reset = () => {
+    this.array = new Int16Array(this.buffer);
+    this.length = 0;
+    this.lost = 0;
+
+    this.setState({
+      data: [],
+      length: this.length,
+      lost: this.lost
+    });
+  }
+  /**
+   *
+   */
+  toggleSocket() {
+    if (!this.state.isSocketOn) {
+      this.socket = new WebSocket('');
+      this.reset();
+      this.socket.addEventListener('message', this.socketListener);
+    } else {
+      // this.socket.removeEventListener('message', this.socketListener);
+      this.socket = null;
+    }
+
+    this.setState({
+      isSocketOn: !this.state.isSocketOn
+    })
+  }
+
+  /**
+   *
+   */
+  statisticHandler() {
+    this.setState({
+      isStatisticShow: true,
+      length: this.length,
+      data: this.array.slice(0, this.length),
+      lost: this.lost
+    })
+  }
+
+  /**
+   *
+   * @param event
+   */
+  socketListener(event) {
+    if (this.length < this.limit) {
+      this.array[this.length++] = JSON.parse(event.data).value;
+    } else {
+      this.lost++;
+    }
+  }
+
+  render() {
+    const statisticOutput = (this.state.isStatisticShow)
+        ? <Statistic lost={this.state.lost} data={this.state.data} length={this.state.length} /> : '';
+
+    return (
+        <div className="app">
+          <div className="app__controls controls">
+            <button className="btn" onClick={this.toggleSocket}>{(this.state.isSocketOn ? 'Стоп' : 'Старт')}</button>
+            <button className={(!this.state.isSocketOn ? 'disabled btn' : 'btn')} onClick={this.statisticHandler}>Статистика</button>
+          </div>
+          {statisticOutput}
+        </div>
+    );
+  }
 }
 
 export default App;

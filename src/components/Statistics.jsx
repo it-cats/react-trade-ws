@@ -1,132 +1,121 @@
-/* eslint-disable */ 
-import React, { useState } from 'react';
-import ButtonComp from './Button';
-import IndicatorComp from './Indicator';
-function StatisticsComp({wssData, onClick, disabled, statusDate}) {
-  const [dispersion, setDispersion] = useState(0);
-  const [standDevitation, setStandDevitation] = useState(0);
-  const [timeToPerfomance, setTimeToPerfomance] = useState(0);
-  const [median, setMedian] = useState(0);
-  const [mode, setMode] = useState(0);
+import React from 'react';
 
-  // Расчет среднего(дисперсия) и стандартного отклонения
-  function calcDispAndStandDevit() {
-    const arrSum = wssData.reduce((a, b) => a + b, 0);
-    const arrMain = arrSum / wssData.length;
-    const dispersionSum = (wssData.map((item) => (item - arrMain) ** 2).reduce((a, b) => a + b, 0));
-    const dispersionValue = (dispersionSum / wssData.length).toFixed();
-    const standartDevitationVal = Math.sqrt(dispersionValue).toFixed(1);
-    // Обновление среднего(дисперсия) и стандартного отклонения
-    setDispersion(dispersionValue);
-    setStandDevitation(standartDevitationVal);
-  }
+function Statistic(props) {
+    let mean = 0;
 
-  // Расчет медианы
-  function calcMedian() {
-    let even;
-    let odd;
-    if (wssData.length === 0) return 0;
-    wssData.sort((a, b) => a - b);
-    const half = Math.floor(wssData.length / 2);
-    if (wssData.length % 2) {
-      even = wssData[half];
-      setMedian(even);
-    } else {
-      odd = (wssData[half - 1] + wssData[half]) / 2.0;
-      setMedian(odd);
+    /**
+     *
+     * @returns {number}
+     */
+    const getMode = () => {
+        let i = props.length,
+            counts = [],
+            max = 0,
+            value = 0,
+            counter,
+            mode;
+
+        while(i--) {
+            value = props.data[i];
+            counter = (counts[value] || 0) + 1;
+            counts[value] = counter;
+            if (counter > max) {
+                max = counter;
+                mode = value;
+            }
+        }
+
+        return mode;
     }
-  }
 
-  // Расчет моды
-  function calcmMode() {
-    const map = new Map();
-    let maxFreq = 0;
-    // eslint-disable-next-line no-shadow
-    let mode;
+    /**
+     *
+     * @returns {number}
+     */
+    const getMedian = () => {
+        let median;
+        let half = Math.floor(props.length / 2);
 
-    // eslint-disable-next-line no-restricted-syntax
-    for (const item of wssData) {
-      let freq = map.has(item) ? map.get(item) : 0;
-      // eslint-disable-next-line no-plusplus
-      freq++;
-      if (freq > maxFreq) {
-        maxFreq = freq;
-        mode = item;
-      }
+        if (props.length % 2) {
+            median = props.data[half];
+        } else {
+            median = (props.data[half - 1] + props.data[half]) / 2;
+        }
 
-      map.set(item, freq);
+        return median.toFixed(3);
     }
-    setMode(mode);
-    return mode;
-  }
 
-  // Показ статистики
-  const showStatistics = () => {
-    // Начало отсчета выполнения функции (оценка производительности)
-    const start = performance.now();
-    // Расчет среднего(дисперсия) и стандартного отклонения
-    calcDispAndStandDevit();
+    /**
+     *
+     * @returns {number}
+     */
+    const getMean = () =>  {
+        let i = props.length;
+        let total = 0;
 
-    // Расчет медианы
-    calcMedian();
+        while (i--) {
+            total += props.data[i];
+        }
 
-    // Расчет моды
-    calcmMode();
+        mean = total / props.length;
+        return mean.toFixed(3);
+    }
 
-    // Окончание отсчета выполнения фунуции (оценка производительности)
-    const end = performance.now();
+    /**
+     *
+     * @returns {number}
+     */
+    const getDeviation = () =>  {
+        let mean = 0;
+        
+        let deviation = 0;
+        let i = props.length,
+            some = (mean === 0) ? getMean() : mean,
+            total = 0;
 
-    // Расчет времени на выполнение операций
-    const time = (end - start).toFixed(1);
+        while(i--) {
+            total += Math.pow(props.data[i] - mean, 2)
+        }
 
-    // Обновление значения затраченного времени на выполнение
-    setTimeToPerfomance(time);
+        deviation = Math.sqrt(total / props.length);
+        return deviation.toFixed(3);
+    }
 
-  };
 
+        if (props.length === 0) {
+            return <div className="statistic"><div className="statistic__empty">Пока нет данных для обработки.</div></div>
+        }
 
-  // render
-  return (
-    <div className="App">
-      <h2>Задание 1</h2>
-      <ButtonComp 
-        name="Старт"
-        click={onClick}
-        disabled={false}
-      />
-      <ButtonComp 
-        name={statusDate ? 'Статистика' : 'Загружаю данные...'}
-        click={showStatistics2}
-        disabled={disabled}
-      />
+        const lost = (props.lost) ? 'Не учтено котировок: ' + (props.lost)  : '' ;
 
-      <IndicatorComp 
-        title="Среднее отклонение:"
-        value={dispersion}
-      />
+        props.data.sort(function (a,b) {
+            return a - b;
+        });
 
-      <IndicatorComp 
-        title="Cтандартное отклонение:"
-        value={standDevitation}
-      />
+        return (
+            <div className="statistic">
+                <div className="statistic__item">
+                    <label>Среднее</label>
+                    <b>{getMean()}</b>
+                </div>
+                <div className="statistic__item">
+                    <label>Стандартное отклонение</label>
+                    <b>{getDeviation()}</b>
+                </div>
+                <div className="statistic__item">
+                    <label>Медиана</label>
+                    <b>{getMedian()}</b>
+                </div>
+                <div className="statistic__item">
+                    <label>Мода</label>
+                    <b>{getMode()}</b>
+                </div>
 
-      <IndicatorComp 
-        title="Мода:"
-        value={mode}
-      />
-
-      <IndicatorComp 
-        title="Медиана:"
-        value={median}
-      />
-
-      <IndicatorComp 
-        title="Время выполнения операции:"
-        value={timeToPerfomance}
-      />
-
-    </div>
-  );
+                <div className="statistic__info">
+                    Обработано котировок: {props.length}. {lost}
+                </div>
+            </div>
+        )
 }
 
-export default StatisticsComp;
+export default Statistic;
