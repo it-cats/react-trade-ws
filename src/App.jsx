@@ -22,7 +22,7 @@ class App extends React.Component {
     // Array for all data from socket. Init in this.reset()
     this.array = null;
     // Current array position
-    this.length = 0;
+    this.length = 100;
     // Lost counter
     this.lost = 0;
 
@@ -51,7 +51,7 @@ class App extends React.Component {
    */
   toggleSocket() {
     if (!this.state.isSocketOn) {
-      this.socket = new WebSocket('');
+      this.socket = new WebSocket('wss://trade.trademux.net:8800/?password=1234');
       this.reset();
       this.socket.addEventListener('message', this.socketListener);
     } else {
@@ -74,7 +74,9 @@ class App extends React.Component {
       data: this.array.slice(0, this.length),
       lost: this.lost
     })
+    console.log(this.length, 'this.state.data')
   }
+
 
   /**
    *
@@ -83,6 +85,7 @@ class App extends React.Component {
   socketListener(event) {
     if (this.length < this.limit) {
       this.array[this.length++] = JSON.parse(event.data).value;
+      
     } else {
       this.lost++;
     }
