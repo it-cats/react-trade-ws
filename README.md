@@ -1,8 +1,7 @@
 # trade-reactjs
 
 ```
-# Run project(backend)
-cd vanila
+# Run project
 npm install or yarn install
-node server
+npm start
 
