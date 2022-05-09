@@ -5,9 +5,7 @@ import './App.css';
 class App extends React.Component {
   constructor(props) {
     super(props);
-
     this.socket = null;
-
     this.toggleSocket = this.toggleSocket.bind(this);
     this.statisticHandler = this.statisticHandler.bind(this);
     this.socketListener = this.socketListener.bind(this);
@@ -46,9 +44,7 @@ class App extends React.Component {
       lost: this.lost
     });
   }
-  /**
-   *
-   */
+
   toggleSocket() {
     if (!this.state.isSocketOn) {
       this.socket = new WebSocket('wss://trade.trademux.net:8800/?password=1234');
@@ -64,9 +60,6 @@ class App extends React.Component {
     })
   }
 
-  /**
-   *
-   */
   statisticHandler() {
     this.setState({
       isStatisticShow: true,
@@ -77,15 +70,10 @@ class App extends React.Component {
     console.log(this.length, 'this.state.data')
   }
 
-
-  /**
-   *
-   * @param event
-   */
   socketListener(event) {
     if (this.length < this.limit) {
       this.array[this.length++] = JSON.parse(event.data).value;
-      
+
     } else {
       this.lost++;
     }
@@ -93,16 +81,16 @@ class App extends React.Component {
 
   render() {
     const statisticOutput = (this.state.isStatisticShow)
-        ? <Statistic lost={this.state.lost} data={this.state.data} length={this.state.length} /> : '';
+      ? <Statistic lost={this.state.lost} data={this.state.data} length={this.state.length} /> : '';
 
     return (
-        <div className="app">
-          <div className="app__controls controls">
-            <button className="btn" onClick={this.toggleSocket}>{(this.state.isSocketOn ? 'Стоп' : 'Старт')}</button>
-            <button className={(!this.state.isSocketOn ? 'disabled btn' : 'btn')} onClick={this.statisticHandler}>Статистика</button>
-          </div>
-          {statisticOutput}
+      <div className="app">
+        <div className="app__controls controls">
+          <button className="btn" onClick={this.toggleSocket}>{(this.state.isSocketOn ? 'Стоп' : 'Старт')}</button>
+          <button className={(!this.state.isSocketOn ? 'disabled btn' : 'btn')} onClick={this.statisticHandler}>Статистика</button>
         </div>
+        {statisticOutput}
+      </div>
     );
   }
 }
